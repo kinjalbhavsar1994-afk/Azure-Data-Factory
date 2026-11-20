@@ -1,0 +1,153 @@
+{
+	"name": "df_clean_Orders",
+	"properties": {
+		"description": "Cleaning part of the Orders data",
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_blob_orders",
+						"type": "DatasetReference"
+					},
+					"name": "AllOrders"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_sql_factOrders",
+						"type": "DatasetReference"
+					},
+					"name": "SinkOrders"
+				}
+			],
+			"transformations": [
+				{
+					"name": "ValidOrders"
+				},
+				{
+					"name": "derivedColumn"
+				},
+				{
+					"name": "cast"
+				},
+				{
+					"name": "FinalOrders"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          OrderId as string,",
+				"          CustomerId as string,",
+				"          ProductId as string,",
+				"          OrderDate as string,",
+				"          Quantity as string,",
+				"          UnitPrice as string,",
+				"          Discount as string,",
+				"          ShippingCost as string,",
+				"          PaymentMethod as string,",
+				"          OrderStatus as string,",
+				"          Region as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     wildcardPaths:['orders/year=2024/orders_*2024.csv']) ~> AllOrders",
+				"cast filter(!isNull(OrderId) && length(trim(OrderId)) > 0) ~> ValidOrders",
+				"ValidOrders derive(GrossRevenue = UnitPrice * Quantity,",
+				"          OrderYear = year(toDate(OrderDate,'yyyy-MM-dd')),",
+				"          OrderMonth = month(toDate(OrderDate,'yyyy-MM-dd')),",
+				"          DiscountAmount = Quantity * UnitPrice * ShippingCost,",
+				"          NetRevenue = Quantity * UnitPrice * (1-ShippingCost),",
+				"          TotalRevenue = (Quantity * UnitPrice * (1-ShippingCost) + ShippingCost),",
+				"          IsDelivered = equals(OrderStatus,'Delivered'),",
+				"          OrderedatClean = toDate(OrderDate, 'yyyy-MM-dd')) ~> derivedColumn",
+				"AllOrders cast(output(",
+				"          OrderId as string,",
+				"          Quantity as integer '000',",
+				"          UnitPrice as integer '000',",
+				"          ShippingCost as integer '000'",
+				"     ),",
+				"     errors: true) ~> cast",
+				"derivedColumn select(mapColumn(",
+				"          OrderId,",
+				"          CustomerId,",
+				"          ProductId,",
+				"          OrderDateOld = OrderDate,",
+				"          Quantity,",
+				"          UnitPrice,",
+				"          DiscountPct = Discount,",
+				"          ShippingCost,",
+				"          PaymentMethod,",
+				"          OrderStatus,",
+				"          Region,",
+				"          GrossRevenue,",
+				"          OrderYear,",
+				"          OrderMonth,",
+				"          DiscountAmount,",
+				"          NetRevenue,",
+				"          TotalRevenue,",
+				"          IsDelivered,",
+				"          OrderDate = OrderedatClean",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> FinalOrders",
+				"FinalOrders sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          OrderId as string,",
+				"          CustomerId as string,",
+				"          ProductId as string,",
+				"          Customername as string,",
+				"          Productname as string,",
+				"          Category as string,",
+				"          OrderDate as date,",
+				"          Ordermonth as integer,",
+				"          OrderYear as integer,",
+				"          Quantity as integer,",
+				"          UnitPrice as decimal(10,2),",
+				"          Discountpct as decimal(10,2),",
+				"          DiscountAmount as decimal(10,2),",
+				"          GrossRevenue as decimal(10,2),",
+				"          Shippingcost as decimal(10,2),",
+				"          NetRevenue as decimal(10,2),",
+				"          CostofGoods as decimal(10,2),",
+				"          GrossProfit as decimal(10,2),",
+				"          PaymentMethod as string,",
+				"          Orderstatus as string,",
+				"          Isdelivered as boolean,",
+				"          Region as string,",
+				"          LoadAt as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     truncate:true,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          OrderId,",
+				"          CustomerId,",
+				"          ProductId,",
+				"          OrderDate,",
+				"          Ordermonth = OrderMonth,",
+				"          OrderYear,",
+				"          Quantity,",
+				"          UnitPrice,",
+				"          Discountpct = DiscountAmount,",
+				"          GrossRevenue,",
+				"          Shippingcost = ShippingCost,",
+				"          NetRevenue,",
+				"          PaymentMethod,",
+				"          Orderstatus = OrderStatus,",
+				"          Isdelivered = IsDelivered,",
+				"          Region",
+				"     )) ~> SinkOrders"
+			]
+		}
+	}
+}

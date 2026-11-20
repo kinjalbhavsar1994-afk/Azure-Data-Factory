@@ -1,0 +1,62 @@
+{
+	"name": "ds_sql_dimProducts",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_azure_shopeasy2024test",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "ProductId",
+				"type": "varchar"
+			},
+			{
+				"name": "ProductName",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Category",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Subcategory",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Brand",
+				"type": "nvarchar"
+			},
+			{
+				"name": "UnitPrice",
+				"type": "decimal",
+				"precision": 10,
+				"scale": 2
+			},
+			{
+				"name": "CostPrice",
+				"type": "decimal",
+				"precision": 10,
+				"scale": 2
+			},
+			{
+				"name": "IsActive",
+				"type": "bit"
+			},
+			{
+				"name": "Supplier",
+				"type": "nvarchar"
+			},
+			{
+				"name": "LoadAt",
+				"type": "date"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "dim_products"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

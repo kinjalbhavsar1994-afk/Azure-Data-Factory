@@ -1,0 +1,87 @@
+{
+	"name": "pl_master_shopeasy",
+	"properties": {
+		"description": "All the pipelines will be added here",
+		"activities": [
+			{
+				"name": "LoadDimension",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_Load_Dimensions",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Transform Orders",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "LoadDimension",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_Transform_Orders",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "DF_ActivityEnrichOrder",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "Transform Orders",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:30:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_Enrich_Orders",
+						"type": "DataFlowReference"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			}
+		],
+		"parameters": {
+			"Run": {
+				"type": "string",
+				"defaultValue": "Full"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-11-20T11:56:45Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

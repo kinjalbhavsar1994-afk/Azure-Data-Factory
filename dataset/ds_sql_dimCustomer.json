@@ -1,0 +1,54 @@
+{
+	"name": "ds_sql_dimCustomer",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_azure_shopeasy2024test",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "CustomerId",
+				"type": "varchar"
+			},
+			{
+				"name": "FullName",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Email",
+				"type": "nvarchar"
+			},
+			{
+				"name": "City",
+				"type": "nvarchar"
+			},
+			{
+				"name": "State",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Country",
+				"type": "nvarchar"
+			},
+			{
+				"name": "CustomerSegment",
+				"type": "nvarchar"
+			},
+			{
+				"name": "JoinDate",
+				"type": "date"
+			},
+			{
+				"name": "LoadAt",
+				"type": "date"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "dim_customer"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
